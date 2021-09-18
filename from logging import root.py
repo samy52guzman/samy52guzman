@@ -1,53 +1,63 @@
 from logging import root
 from mysql.connector import connect
-data =  connect(
-    host = "localhost",
-    user = "root",
+import time
 
+data = connect(
+    host="localhost",
+    user="root",
+    passwd="sa091130",
+    database="almacen"
 
 )
 mycursor = data.cursor()
-def col_insertar():
 
-    tipos = [ "smallint","VARCHAR", "int"]
+
+def col_insertar():
+    tipos = ["smallint", "VARCHAR", "int"]
     name_table = str(input("name of the table: "))
     name_column = str(input("The table should have at least one column, insert the name of the column: "))
-    kind_column = int(input("Insert the kind of data you desire your column hold: \n 1 for words. \n 2 for numbers. \n answer: " ))
+    kind_column = int(
+        input("Insert the kind of data you desire your column hold: \n 1 for words. \n 2 for numbers. \n answer: "))
     crear_tabla = f'CREATE TABLE {name_table}({name_column} {tipos[kind_column]}(50));'
     mycursor.execute(crear_tabla)
+
 
 def borrar_table():
     name_table = str(input("name of the table you want to delete: "))
     erase_table = f'DROP TABLE {name_table};'
     mycursor.execute(erase_table)
-def examinar():
 
+
+def examinar():
     name = str(input("nombre de la tabla que desea examinar: "))
-    mycursor.execute( f"SHOW COLUMNS FROM {name}; ")
+    mycursor.execute(f"SHOW COLUMNS FROM {name}; ")
     for x in mycursor:
         print(x[0])
+        time.sleep(5)
 
 
+# Añadir una colugna
 def añadir_colugna():
     seguir = "si"
     while seguir == "si":
         seguir = str(input("Desea añadir una nueva colugna? "))
         if seguir == "si":
+            tabla = str(input("Escriba el nombre de la tabla a la cual le desea añadir una colugna? "))
             tipo = str(input("Escriba: letra o numero. dependiendo de lo que quiera introducir ? "))
-            if tipo == "letra":
+            if tipo in ("letra", "letras", "Letra", "Letras"):
                 nombre_colugna = str(input("Digite el nombre de la colugna: "))
 
-                mycursor.execute(f"ALTER TABLE alaska ADD COLUMN {nombre_colugna} VARCHAR(50) NOT NULL")
+                mycursor.execute(f"ALTER TABLE {tabla} ADD COLUMN {nombre_colugna} VARCHAR(50) NOT NULL")
                 header3 = []
-                mycursor.execute("DESCRIBE alaska")
+                mycursor.execute(f"DESCRIBE {tabla}")
                 for x in mycursor:
                     header3.append(x[0])
                 print(header3)
-            elif tipo == "numero":
+            elif tipo in ("numeros", "numero", "Numeros", "Numero"):
                 nombre_colugna = str(input("Digite el nombre de la colugna: "))
-                mycursor.execute(f'ALTER TABLE alaska ADD COLUMN {nombre_colugna} smallint')
+                mycursor.execute(f'ALTER TABLE {tabla} ADD COLUMN {nombre_colugna} smallint')
                 header3 = []
-                mycursor.execute("DESCRIBE alaska")
+                mycursor.execute(f"DESCRIBE {tabla}")
                 for x in mycursor:
                     header3.append(x[0])
                 print(header3)
@@ -56,16 +66,18 @@ def añadir_colugna():
             break
 
 
-
+# Inormacion de cada colugna en un database
 def informacion():
-    elegir = str(input("desea saber que los headers del database? "))
+    elegir = str(input("desea saber que la informacion de una tabla? "))
+    tabla = str(input("dinserte en nombre de la tabla: "))
+
     if elegir == "si":
-        mycursor.execute("DESCRIBE alaska")
+        mycursor.execute(f"DESCRIBE {tabla}")
         for x in mycursor:
             print(x)
         elegir2 = str(input("desea saber que la informacion de las colugnas? "))
         if elegir2 == "si":
-            mycursor.execute("SELECT * FROM alaska")
+            mycursor.execute(f"SELECT * FROM {tabla}")
             for x in mycursor:
                 print(x)
     elegir2 = str(input("desea saber que la informacion de las colugnas? "))
@@ -77,14 +89,16 @@ def informacion():
             print(nombres)
     else:
         return
+
+
+# Elimina la colugna seleccionada.
 def eliminar_colugna():
-    deseo = str(input("Desea eliminar una colugna? "))
-    if deseo == "si":
+    deseo = str(input("Desea eliminar una colugna? (si o no): "))
+    if deseo in ("si", "Si"):
         tabla = str(input("Inserte el nombre de la tabla a la cual le desea borrar una colugna: "))
         header = []
         mycursor.execute(f"DESCRIBE {tabla} ")
         for x in mycursor:
-
             header.append(x[0])
         print("Estos son los headers de las colugnas. ")
         print(header)
@@ -93,7 +107,15 @@ def eliminar_colugna():
             mycursor.execute(f'ALTER TABLE {tabla} DROP {eliminar}')
         else:
             print("Este nombre no existe, intente de nuevo.")
+    elif deseo in ("no", "No"):
+        print("adios")
+        time.sleep(3)
+    else:
+        print("Mal escrito")
+        time.sleep(3)
 
+
+# cambiar el nombre del header de las colugnas.
 def editar_header():
     deseo = str(input("Desea editar el header de una colugna: "))
     if deseo == "si":
@@ -115,6 +137,8 @@ def editar_header():
         else:
             print("el nombre que usted introdujo para editar no puede ser encontrado, por favor intente de nuevo.")
 
+
+# para saber la cantidad de filas en una tabla.
 def count_rows():
     desicion = str(input("desea saber cuantas filas hay? "))
     tabla = str(input("nombre de la tabla: "))
@@ -122,22 +146,58 @@ def count_rows():
         mycursor.execute(f"SELECT COUNT(*) FROM {tabla}; ")
         for x in mycursor:
             print(x)
+    time.sleep(5)
+
+
+# ver todas las tablas en el database
+def ver_tablas():
+    tablas = []
+    mycursor.execute(f"SHOW TABLES;")
+    for x in mycursor:
+        tablas.append(x)
+    print(tablas)
+    time.sleep(5)
+
+
+def insertar_index():
+    tablas = []
+    header = []
+    mycursor.execute(f"SHOW TABLES;")
+    for x in mycursor:
+        tablas.append(x)
+    print(tablas)
+    tabla = str(input("Seleccione la tabla correspondiente: "))
+    mycursor.execute(f"DESCRIBE {tabla}")
+    for x in mycursor:
+        header.append(x[0])
+    print(header)
+    colugna = str(input("Seleccione la colugna correspondiente: "))
+    valor = str(input("Inserte el valor que quiera introducir: "))
+
+    mycursor.execute(f"CREATE INDEX {valor} ON {tabla}({colugna});")
+    mycursor.execute(f"SHOW INDEX FROM almacen.{tabla};")
+    for c in mycursor:
+        print(c[2])
+    time.sleep(5)
+    return
 
 
 def selecter():
     while True:
-        desicion = int(input("digite el numero de lo que desea hacer.\n 1) agregar una tabla de datos. \n 2) borrar una tabla de datos. \n "
-                             "3) ver las colugnas que hay. \n 4) agregar colugna.\n 5) informacion. \n 6) eliminar colugna. \n 7) editar nombre de colugna \n"
-                             " 8) contar filas.\n respuesta: "))
-        if desicion == 1 :
+        desicion = int(input(
+            "digite el numero de lo que desea hacer.\n1) agregar una tabla de datos. \n2) borrar una tabla de datos. \n"
+            "3) ver las colugnas que hay. \n4) agregar colugna.\n5) informacion. \n6) eliminar colugna. \n7) editar nombre de colugna. \n"
+            "8) contar filas.\n9) ver tablas en almacen. \n10) insertar index. \npara salir solo digite el cero (0),"
+            "respuesta: "))
+        if desicion == 1:
             col_insertar()
-        elif desicion ==2:
+        elif desicion == 2:
             borrar_table()
-        elif desicion ==3:
+        elif desicion == 3:
             examinar()
         elif desicion == 4:
             añadir_colugna()
-        elif  desicion == 5:
+        elif desicion == 5:
             informacion()
         elif desicion == 6:
             eliminar_colugna()
@@ -145,21 +205,18 @@ def selecter():
             editar_header()
         elif desicion == 8:
             count_rows()
+        elif desicion == 9:
+            ver_tablas()
+        elif desicion == 10:
+            insertar_index()
+        elif desicion == 0:
+            break
         else:
             print("intente de nuevo.")
+
+
 selecter()
-
-
 """------------------------------------------------------------------------------------------"""
-
-
-
-
-
-
-
-
-
 
 # para crear un database
 # cursor.execute("CREATE DATABASE python")
@@ -176,30 +233,20 @@ selecter()
 # cursor.execute("DESCRIBE persona")
 
 # Para saber lo que esta adentro del header de la tabla
-#cursor.execute("SELECT * FROM persona")
+# cursor.execute("SELECT * FROM persona")
 
-#PARA BORRAR COLUGNAS
-#cursor.execute("ALTER TABLE persona DROP genero")
+# PARA BORRAR COLUGNAS
+# cursor.execute("ALTER TABLE persona DROP genero")
 
-#para cambiar el nombre del header de una colugna y tambien se pueden cambiar propiedades
-#cursor.execute(f'ALTER TABLE persona change {editar} {editado} VARCHAR(50)')
+# para cambiar el nombre del header de una colugna y tambien se pueden cambiar propiedades
+# cursor.execute(f'ALTER TABLE persona change {editar} {editado} VARCHAR(50)')
 
-#PARA AñADIR VARIAS INFORMACIONES A LA VEZ EN UNA TABLA
-#cursor.execute("INSERT INTO Users(name, passwd) VALUES(%s,%s)", users)
+# PARA AñADIR VARIAS INFORMACIONES A LA VEZ EN UNA TABLA
+# cursor.execute("INSERT INTO Users(name, passwd) VALUES(%s,%s)", users)
 
-users =[("bryan", "bryan87"),
-        ("perdro", "pedronavaja7"),
-        ("martinez", "elmartess88925")]
-
-user_scores = [(45,100),
-              (30,200),
-              (46,124)]
 
 Q1 = "CREATE TABLE Users (id int PRIMARY KEY AUTO_INCREMENT, name VARCHAR(50), passwd VARCHAR(50))"
 
 Q2 = "CREATE TABLE Scores (userId int PRIMARY KEY, FOREIGN KEY(userId) REFERENCES Users(id), game1 int DEFAULT 0, game2 int DEFAULT 0)"
 Q3 = "INSERT INTO Users(name, passwd) VALUES (%s,%s)"
 Q4 = "INSERT INTO scores (userId, game1, game2) VALUES (%s, %s, %s)"
-
-
-
