@@ -5,7 +5,6 @@ import time
 data = connect(
     host="localhost",
     user="root",
-    passwd="sa091130",
     database="almacen"
 
 )
